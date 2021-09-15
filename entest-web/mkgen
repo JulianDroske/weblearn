@@ -1,0 +1,5 @@
+#!/bin/sh
+
+echo -n "var WORDLIST = '" >autogen.js
+cat db-full.txt |sed 's/$/\\n\\/g' >>autogen.js
+echo "'" >>autogen.js

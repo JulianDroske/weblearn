@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<!-- The declaration shown above defines the type of this document which is standard HTML(5) -->
+<!-- Source code is of education use for students studying HTML/CSS/JS (from scratch). Here describes HTML only. -->
+<!-- This is a comment in HTML, you can not see them in your web page. -->
+<!-- And also, this type of comments is multi-line.
+	Just like this. -->
+
+<!-- TODO complete comments for CSS and JavaScript -->
+
+<!--
+	The two types of standard html tag definition is shown below.
+		<tagName prop1="v1" prop2="v2" ... >inner</tagName>
+		<tagName prop1="v1" prop2="v2" ... />
+	which:
+		prop1, prop2 are the properties of the tag, they are optional and have no limit of count.
+		v1 is the content of propertie prop1, so is prop2.
+		any "unregistered" prop like rem="hello" will not cause an exception.
+		inner is the content of the tag. Either pure texts or tags is okay.
+		<tagName ... > or <tagName defines the start of the tag while </tagName> or /> defines the end of the tag.
+	-->
+
+<!-- Define a tag named "html". That's the main entry of your page. -->
+<html>
+	<!-- Define a tag named "head", which allows you modify some properties "outside" your web page. -->
+	<head>
+		<!-- Does anyone not use UTF-8 ?? -->
+		<!-- tag "meta" is an extra tag for HTML. -->
+		<!--
+			Every propertie consists of three parts:
+				name, =, value
+				
+			The simplest charset definition for HTML5 is
+				<meta charset="utf-8">
+			either is okay. -->
+		<meta http-equiv='Content-Type' content='text/html' charset='utf-8' />
+		<!-- Define the title of your page. This will be shown at your brower's tag. -->
+		<title>simple entest online</title>
+		<!-- Style sheet for elements(tags). -->
+		<style>
+			/* Comment of CSS. It's also multi-line. */
+			.center {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+			}
+
+			* {
+				text-align: center;
+			}
+		</style>
+	</head>
+	<!-- Define the main body of your page. -->
+	<body>
+		<!-- This tag will be shown when the Javascript runtime is unavailable. -->
+		<noscript>Error: Javascript is not available.</noscript>
+
+		<!-- div is a container which you can put anything into -->
+		<div class='center'>
+			<!-- To show texts -->
+			<span id='zh'>Click START! to start your test.</span>
+			<div id='next' style='visibility: hidden; height: 0px;'>
+				<!-- Single-line text input field -->
+				<div id='running'>
+				<div id='ans'>Answer: <input id='en' type='text' style='border: solid;' onchange='process();'></input></div><br />
+				<span id='inf'></span>
+					<!-- Button under h5 -->
+					<!-- We'd better use <input> inside a form -->
+					<button id='ok' onclick='process();'>OK</button>
+					<button id='unk' onclick='process(2);'>Unknow</button>
+					<button id='skip' onclick='process(1);'>Skip</button><br />
+					<button id='save' style='width: 100%;' onclick='save();'>Save Appeared Words</button>
+					<button id='end' style='width: 100%;' onclick='end();'>End test</button>
+				</div>
+				<!-- Multi-line text input field -->
+				<textarea id='list' style='width: 100%; height: 100%;'></textarea>
+			</div>
+			<div id='init'>
+				<button id='load' onclick='load();'>Load Word List</button>
+				<button id='start' onclick='onstart();'>START!</button>
+			</div>
+		</div>
+		<input id='LOAD' type='file' style='width: 0px; height: 0px; broder: none; visibility: hidden;'></input>
+	<!-- End of body -->
+	</body>
+	<!-- JavaScript codes -->
+	<script src='autogen.js'></script>
+	<script>
+		// This is a comment
+		/* This is a
+			multi-line comment */
+
+		function $(id){
+			// TODO optimize
+			return document.getElementById(id);
+		}
+
+		function appear(id){
+			if(id instanceof Array){
+				id.forEach(function(i){
+					appear(i);
+				});
+			}else{
+				$(id).style.visibility = '';
+			}
+		}
+
+		function disappear(id){
+			if(id instanceof Array){
+				id.forEach(function(i){
+					disappear(i);
+				});
+			}else{
+				$(id).style.visibility = 'hidden';
+			}
+		}
+
+			
+		var wordList = null;
+		var fails = [];
+
+		function initWordlist(dat){
+
+			// fetch wordList
+			if(dat instanceof Array){
+				wordList = dat;
+			}else if(typeof(dat) == 'string'){
+				wordList = [];
+				var ls = dat.split('\n');
+				for(var l of ls){
+					var sp = ' ';
+					if(l.indexOf('\t')!=-1) sp = '\t';
+					var line = l.split(sp);
+					wordList.push([line[0], line[1]]);
+				}
+			}else{
+				console.log('Error: file type no recognized.');
+				return;
+			}
+
+			
+			// init random wordlist
+			for(var i=0, N=wordList.length, n=(N/2)|0; i<n; ++i){
+				var i2 = (Math.random()*n)|0+n;
+				[wordList[i], wordList[i2]] = [wordList[i2], wordList[i]];
+			}
+		}
+
+		var nowP = -1;
+		function next(){
+			if(nowP<wordList.length-1) ++nowP;
+			else return true;
+			if(!wordList || !wordList[nowP]) return true;
+			$('zh').innerHTML = wordList[nowP][1];
+			$('inf').innerHTML = '';
+		}
+		function putIntoList(){
+			$('list').value += '\n' + wordList[nowP][0] + ' ' + wordList[nowP][1];
+		}
+		var nextLock = false;
+		function process(skip){
+			if(nextLock) return;
+			nextLock = true;
+			var timeout = 1000;
+			if(skip == 1){
+				// skip
+				$('inf').innerHTML = 'Answer: ' + wordList[nowP][0];
+			}else if(skip == 2){
+				// unknow
+				$('inf').innerHTML = 'Answer: ' + wordList[nowP][0];
+				putIntoList();
+			}else{
+				var ans = $('en').value;
+				if(ans == wordList[nowP][0]){
+					$('inf').innerHTML = 'Correct!';
+					timeout = 500;
+				}else{
+					// false
+					$('inf').innerHTML = 'Wrong! The answer is '+wordList[nowP][0];
+					putIntoList();
+				}
+			}
+			setTimeout(function(){
+				$('en').value = '';
+				if(!next()) nextLock = false;
+				else end();
+			}, timeout);
+			
+		}
+
+		function end(){
+			nextLock = true;
+			$('zh').innerHTML = 'None left in the word list.';
+			disappear('running');
+			appear('init');
+		}
+		
+		function onstart(){
+			$('next').style.cssText = '';
+			disappear('init');
+			$('list').value = '';
+			appear(['running', 'list']);
+			if(WORDLIST) initWordlist(WORDLIST);
+			if(next()) end();
+		}
+
+		function load(){
+			$('LOAD').onchange = function(){
+				var file = $('LOAD').files[0];
+
+				var reader = new FileReader();
+				reader.onload = function(){
+					initWordlist(this.result);
+				}
+				reader.readAsText(file);
+				$('LOAD').onchange = null;
+			}
+			$('LOAD').dispatchEvent(new MouseEvent('click'));
+		}
+		
+	</script>
+	<!-- The end of your HTML page -->
+</html>
